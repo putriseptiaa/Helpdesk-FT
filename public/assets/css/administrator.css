@@ -1,0 +1,104 @@
+.card-pengajuan {
+    border: solid 1px;
+    margin: 12px;
+    padding: 20px 50px;
+    border-radius: 6px;
+    color: #fff;
+}
+
+.card-user{
+    border: solid 1px;
+    margin: 12px;
+    padding: 20px 50px;
+    border-radius: 6px;
+    color: #fff;
+    background-color: #446084;
+}
+
+.card-pengajuan.spta{
+    background-color: #446084;
+}
+
+.card-pengajuan.semta{
+    background-color: #446084;
+}
+
+.card-pengajuan.sta{
+    background-color: #446084;
+}
+
+.card-pengajuan.skp{
+    background-color: #446084;
+}
+
+.card-pengajuan.ppskkp{
+    background-color: #446084;
+}
+
+.card-pengajuan.pptakp{
+    background-color: #446084;
+}
+
+.card-pengajuan.legalisasi{
+    background-color: #446084;
+}
+
+.card-pengajuan.ulkp{
+    background-color: #446084;
+}
+
+.card-pengajuan.ulta{
+    background-color: #446084;
+}
+.card-pengajuan.bpit{
+    background-color: #446084;
+}
+
+.card-pengajuan i{
+    font-size: 60px;
+}
+
+.card-user i{
+    font-size: 60px;
+}
+
+.card-desc.spta{
+    font-size: 15px;
+    color: #fff;
+   
+}
+
+.card-desc i{
+    font-size: 15px;
+    color: #fff;
+}
+
+.card-desc{
+    font-size: 12px;
+}
+
+.card-call{
+    font-size: 20px;
+}
+
+.card-call i{
+    font-size: 18px;
+    color: #fff;
+}
+
+/* .small-box-footer{
+    position: relative;
+    z-index: 10;
+    display: block;
+    padding: 3px 0;
+    text-align: center;
+    background-color: rgba(red, green, blue, alpha);
+
+    &:hover{
+        background-color: rgba(red, green, blue, alpha);
+    }
+} */
+
+.footer{
+    font-size: 14px;
+}

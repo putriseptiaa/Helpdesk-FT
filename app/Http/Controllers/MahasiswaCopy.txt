@@ -1,0 +1,653 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Legalisasi;
+use App\Models\Notifikasi;
+use App\Models\Pengajuanbpit;
+use App\Models\Pengajuanpptakp;
+use App\Models\Pengajuanpskkp;
+use App\Models\Pengajuanspta;
+use App\Models\Pengajuansemta;
+use App\Models\Pengajuanskp;
+use App\Models\Pengajuansta;
+use App\Models\Pengajuanulkp;
+use App\Models\Pengajuanulta;
+use App\Models\TransWF;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class MahasiswaController extends Controller
+{
+     /**
+     * Show the update profile page.
+     *
+     * @param  Request $request
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function pengajuanspta()
+    {
+        // return view('mahasiswa.pengajuanspta');
+        $data = Pengajuanspta::with('user', 'transwf', 'transwf.wfreference')->get();
+        return view('mahasiswa/pengajuanspta', compact('data'));
+    }
+
+    public function pengajuansptastore(Request $request){
+
+        $datas = Pengajuanspta::with('user', 'transwf', 'transwf.wfreference')->get();
+        foreach ($datas as $data) 
+
+        $request->validate([
+            'email' => 'required',
+            'nama' => 'required|max:255', 
+            'nohp' => 'required|max:13', 
+            'nim' =>'required|max:9', 
+            'jurusan' => 'required',
+            'jenis_surat' => 'required',
+            'tgl_pengajuan' => 'required',  
+            'nm_pembimbing1' => 'required|max:255', 
+            'nm_pembimbing2' => 'required|max:255', 
+            'judul_prota' => 'required|string|max:255', 
+            // 'berkas_penelitian' => 'required', 
+            // 'transkip' => 'required', 
+            // 'bukti_lapkp'=> 'required', 
+            // 'up_ombus'=> 'required', 
+            // 'up_pbn' => 'required'
+        ]);
+        
+        // $data = Pengajuanspta::create($request->all());
+        // if ($request->hasFile('berkas_penelitian')){
+        //     $request->file('berkas_penelitian')->move('berkas_penelitianpengajuanspta/', $request->file('berkas_penelitian')->getClientOriginalName());
+        //     $data->berkas_penelitian = $request->file('berkas_penelitian')->getClientOriginalName();
+        //     $data->save();            
+        // }
+
+        // if ($request->hasFile('transkip')){
+        //     $request->file('transkip')->move('berkas_penelitianpengajuanspta/', $request->file('transkip')->getClientOriginalName());
+        //     $data->transkip = $request->file('transkip')->getClientOriginalName();
+        //     $data->save();            
+        // }
+
+        // if ($request->hasFile('bukti_lapkp')){
+        //     $request->file('bukti_lapkp')->move('berkas_penelitianpengajuanspta/', $request->file('bukti_lapkp')->getClientOriginalName());
+        //     $data->bukti_lapkp = $request->file('bukti_lapkp')->getClientOriginalName();
+        //     $data->save();            
+        // }
+
+        // if ($request->hasFile('up_ombus')){
+        //     $request->file('up_ombus')->move('berkas_penelitianpengajuanspta/', $request->file('up_ombus')->getClientOriginalName());
+        //     $data->up_ombus = $request->file('up_ombus')->getClientOriginalName();
+        //     $data->save();            
+        // }
+
+        // if ($request->hasFile('up_pbn')){
+        //     $request->file('up_pbn')->move('berkas_penelitianpengajuanspta/', $request->file('up_pbn')->getClientOriginalName());
+        //     $data->up_pbn = $request->file('up_pbn')->getClientOriginalName();
+        //     $data->save();            
+        // }
+
+        $id = $request->nim;
+        if ($request->berkas_penelitian) {
+            $extension1 = $request->berkas_penelitian->extension();
+
+            $request->berkas_penelitian->storeAs('/public/spta', $id . " berkas_penelitian." . $extension1);
+           
+            $url1 = Storage::url($id . " berkas_penelitian." . $extension1);
+        }
+        if ($request->transkip) {
+            $extension2 = $request->transkip->extension();
+
+            $request->transkip->storeAs('/public/spta', $id . " transkip." . $extension2);
+            
+            $url2 = Storage::url($id . " transkip." . $extension2);
+        }
+        if ($request->bukti_lapkp) {
+            $extension3 = $request->bukti_lapkp->extension();
+
+            $request->bukti_lapkp->storeAs('/public/spta', $id . " bukti_lapkp." . $extension3);
+
+            $url3 = Storage::url($id . " bukti_lapkp." . $extension3);
+        }
+        if ($request->up_ombus) {
+            $extension4 = $request->up_ombus->extension();
+
+            $request->up_ombus->storeAs('/public/spta', $id . " up_ombus." . $extension4);
+            
+            $url4 = Storage::url($id . " up_ombus." . $extension2);
+        }
+        if ($request->up_pbn) {
+            $extension5 = $request->up_pbn->extension();
+
+            $request->up_pbn->storeAs('/public/spta', $id . " up_pbn." . $extension5);
+
+            $url5 = Storage::url($id . " up_pbn." . $extension3);
+        }
+
+        $date = date('d/m/Y  G:i:s');
+        $array = [
+            "Surat Diajukan",
+            $date
+        ];
+        $history = json_encode($array);
+
+        $transwf = new TransWF();
+        $transwf->history = $history;
+        $pengajuanspta = new Pengajuanspta();
+        $pengajuanspta->email = $request->email; 
+        $pengajuanspta->nama = $request->nama; 
+        $pengajuanspta->nohp = $request->nohp; 
+        $pengajuanspta->nim = $request->nim; 
+        $pengajuanspta->jurusan = $request->jurusan;
+        $pengajuanspta->jenis_surat = $request->jenis_surat;
+        $pengajuanspta->tgl_pengajuan = $request->tgl_pengajuan; 
+        $pengajuanspta->nm_pembimbing1 = $request->nm_pembimbing1; 
+        $pengajuanspta->nm_pembimbing2 = $request->nm_pembimbing2; 
+        $pengajuanspta->judul_prota = $request->judul_prota; 
+        if ($request->berkas_penelitian) {
+                $pengajuanspta->berkas_penelitian = $id . " berkas_penelitian." . $extension1;
+            } 
+        if ($request->transkip) {
+                $pengajuanspta->transkip = $id . " transkip." . $extension2;
+            } 
+        if ($request->bukti_lapkp) {
+                $pengajuanspta->bukti_lapkp = $id . " bukti_lapkp." . $extension3;
+            } 
+        if ($request->up_ombus) {
+                $pengajuanspta->up_ombus = $id . " up_ombus." . $extension4;
+            } 
+        if ($request->up_pbn) {
+                $pengajuanspta->up_pbn = $id . " up_pbn." . $extension5;
+            } else {
+            $takelampiran = Pengajuanspta::where('nim', $id)->first();
+
+            $pengajuanspta->berkas_penelitian = $takelampiran->berkas_penelitian;
+            $pengajuanspta->transkip = $takelampiran->transkip;
+            $pengajuanspta->bukti_lapkp = $takelampiran->bukti_lapkp;
+            $pengajuanspta->up_ombus = $takelampiran->up_ombus;
+            $pengajuanspta->up_pbn = $takelampiran->up_pbn;
+        } 
+        $pengajuanspta->user_id = $request->created_by;
+        $pengajuanspta->created_date = now();
+
+        $pengajuanspta->save();
+        $pengajuanspta->transwf()->save($transwf);
+
+        $notif = Notifikasi::where('jenis', 'Pengajuanspta')->where('flag', 'Administrator')->first();
+        $jumlahnotif = $notif->jumlah + 1;
+        $update = Notifikasi::where('jenis', 'Pengajuanspta')->where('flag', 'Administrator')->update([
+            'jumlah' => $jumlahnotif,
+        ]);
+
+   
+        // return redirect()->route('mahasiswa.pengajuanspta')->with('success','Pengajuan sidang proposal tugas akhir berhasil dilakukan.');
+        return redirect()->route('mahasiswa.beranda')->withToastSuccess('Pengajuan proposal tugas akhir berhasil dilakukan, kami akan menghubungi Anda ketika surat selesai diproses!');
+    }
+
+
+    public function pengajuansemta()
+    {
+        return view('mahasiswa.pengajuansemta');
+    }
+
+    public function pengajuansemtastore(Request $request){
+        $request->validate([
+           'email' => 'required',
+           'nama' => 'required',
+           'nohp' => 'required',
+           'nim'=> 'required',
+           'jurusan' => 'required',
+           'tgl_pengajuan' => 'required',
+           'nm_pembimbing1' => 'required',
+           'nm_pembimbing2' => 'required',
+           'upper_seminar' => 'required',
+           'for_seminar' => 'required',
+           'upper_pembimbing1' => 'required',
+           'upper_pembimbing2' => 'required',
+           'sk_pembimbingta' => 'required',
+           'lembar_pembimbingta' => 'required',
+           'transkip' => 'required',
+           'bukti_penyerahan_lapkp' => 'required',
+        ]);
+        
+        $data = Pengajuansemta::create($request->all());
+        if ($request->hasFile('for_seminar')){
+            $request->file('for_seminar')->move('pengajuansemta/', $request->file('for_seminar')->getClientOriginalName());
+            $data->for_seminar = $request->file('for_seminar')->getClientOriginalName();
+            $data->save();            
+        }
+
+        if ($request->hasFile('upper_pembimbing1')){
+            $request->file('upper_pembimbing1')->move('pengajuansemta/', $request->file('upper_pembimbing1')->getClientOriginalName());
+            $data->upper_pembimbing1 = $request->file('upper_pembimbing1')->getClientOriginalName();
+            $data->save();            
+        }
+
+        if ($request->hasFile('upper_pembimbing2')){
+            $request->file('upper_pembimbing2')->move('pengajuansemta/', $request->file('upper_pembimbing2')->getClientOriginalName());
+            $data->upper_pembimbing2 = $request->file('upper_pembimbing2')->getClientOriginalName();
+            $data->save();            
+        }
+
+        if ($request->hasFile('sk_pembimbingta')){
+            $request->file('sk_pembimbingta')->move('pengajuansemta/', $request->file('sk_pembimbingta')->getClientOriginalName());
+            $data->sk_pembimbingta = $request->file('sk_pembimbingta')->getClientOriginalName();
+            $data->save();            
+        }
+
+        if ($request->hasFile('lembar_pembimbingta')){
+            $request->file('lembar_pembimbingta')->move('pengajuansemta/', $request->file('lembar_pembimbingta')->getClientOriginalName());
+            $data->lembar_pembimbingta = $request->file('lembar_pembimbingta')->getClientOriginalName();
+            $data->save();            
+        }
+        
+        if ($request->hasFile('transkip')){
+            $request->file('transkip')->move('pengajuansemta/', $request->file('transkip')->getClientOriginalName());
+            $data->transkip = $request->file('transkip')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('bukti_penyerahan_lapkp')){
+            $request->file('bukti_penyerahan_lapkp')->move('pengajuansemta/', $request->file('bukti_penyerahan_lapkp')->getClientOriginalName());
+            $data->bukti_penyerahan_lapkp = $request->file('bukti_penyerahan_lapkp')->getClientOriginalName();
+            $data->save();            
+        }
+   
+        // return redirect()->route('mahasiswa.pengajuanspta')->with('success','Pengajuan sidang proposal tugas akhir berhasil dilakukan.');
+        return redirect()->route('mahasiswa.beranda')->withToastSuccess('Pengajuan seminar tugas akhir berhasil dilakukan, kami akan menghubungi Anda ketika surat selesai diproses!');
+    }
+
+
+
+    public function pengajuansta()
+    {
+        return view('mahasiswa.pengajuansta');
+    }
+
+    public function pengajuanstastore(Request $request){
+        $request->validate([
+           'email' => 'required',
+           'nama' => 'required',
+           'nohp' => 'required',
+           'nim'=> 'required',
+           'jurusan' => 'required',
+           'tgl_pengajuan' => 'required',
+           'nm_pembimbing1' => 'required',
+           'nm_pembimbing2' => 'required',
+           'uppersta' => 'required',
+           'for_ta' => 'required',
+           'upper_pembimbing1' => 'required',
+           'upper_pembimbing2' => 'required',
+           'sk_pembimbingta' => 'required',
+           'transkip' => 'required',
+           'buksum_artikel' => 'required',
+           'lembar_revisi_seminar' => 'required',
+           'draft_ta' => 'required',
+           'bukbayar_ukt' => 'required',
+           'tes_telp' => 'required',
+           'cek_plagiat' => 'required',
+           'kerja' => 'required',
+           'jabatan' => 'required',
+           'nm_perusahaan' => 'required',
+           'alamat_perusahaan' => 'required',
+           'jenis_perjanjiankerja' => 'required',
+           'tgl_mulai' => 'required',
+           'gaji' => 'required',
+           'email_perusahaan' => 'required',
+           'notelp_perusahaan' => 'required',
+           'pernyataan' => 'required',
+        ]);
+
+        $data = Pengajuansta::create($request->all());
+        if ($request->hasFile('for_ta')){
+            $request->file('for_ta')->move('pengajuansta/', $request->file('for_ta')->getClientOriginalName());
+            $data->for_ta = $request->file('for_ta')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('upper_pembimbing1')){
+            $request->file('upper_pembimbing1')->move('pengajuansta/', $request->file('upper_pembimbing1')->getClientOriginalName());
+            $data->upper_pembimbing1 = $request->file('upper_pembimbing1')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('upper_pembimbing2')){
+            $request->file('upper_pembimbing2')->move('pengajuansta/', $request->file('upper_pembimbing2')->getClientOriginalName());
+            $data->upper_pembimbing2 = $request->file('upper_pembimbing2')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('sk_pembimbingta')){
+            $request->file('sk_pembimbingta')->move('pengajuansta/', $request->file('sk_pembimbingta')->getClientOriginalName());
+            $data->sk_pembimbingta = $request->file('sk_pembimbingta')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('transkip')){
+            $request->file('transkip')->move('pengajuansta/', $request->file('transkip')->getClientOriginalName());
+            $data->transkip = $request->file('transkip')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('buksum_artikel')){
+            $request->file('buksum_artikel')->move('pengajuansta/', $request->file('buksum_artikel')->getClientOriginalName());
+            $data->buksum_artikel = $request->file('buksum_artikel')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('lembar_revisi_seminar')){
+            $request->file('lembar_revisi_seminar')->move('pengajuansta/', $request->file('lembar_revisi_seminar')->getClientOriginalName());
+            $data->lembar_revisi_seminar = $request->file('lembar_revisi_seminar')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('draft_ta')){
+            $request->file('draft_ta')->move('pengajuansta/', $request->file('draft_ta')->getClientOriginalName());
+            $data->draft_ta = $request->file('draft_ta')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('bukbayar_ukt')){
+            $request->file('bukbayar_ukt')->move('pengajuansta/', $request->file('bukbayar_ukt')->getClientOriginalName());
+            $data->bukbayar_ukt = $request->file('bukbayar_ukt')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('tes_telp')){
+            $request->file('tes_telp')->move('pengajuansta/', $request->file('tes_telp')->getClientOriginalName());
+            $data->tes_telp = $request->file('tes_telp')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('cek_plagiat')){
+            $request->file('cek_plagiat')->move('pengajuansta/', $request->file('cek_plagiat')->getClientOriginalName());
+            $data->cek_plagiat = $request->file('cek_plagiat')->getClientOriginalName();
+            $data->save();            
+        }
+        return redirect()->route('mahasiswa.beranda')->withToastSuccess('Pengajuan sidang tugas akhir berhasil dilakukan, kami akan menghubungi Anda ketika surat selesai diproses!');
+    }
+
+    public function pengajuanskp()
+    {
+        return view('mahasiswa.pengajuanskp');
+    }
+    public function pengajuanskpstore(Request $request){
+        $request->validate([
+           'email' => 'required',
+           'nama' => 'required',
+           'nohp' => 'required',
+           'nim'=> 'required',
+           'jurusan' => 'required',
+           'tgl_pengajuan' => 'required',
+           'nm_pembimbing' => 'required',
+           'forper_kp' => 'required',
+           'upfor_ajuan' => 'required',
+           'upper_pembimbing' => 'required',
+           'surat_selesaikp' => 'required',
+           'daftarhadirkp' => 'required',
+           'nilaikp_pembimbing' => 'required',
+           'sk_pembimbingkp' => 'required',
+           'lembar_pembimbingkp' => 'required',
+           'transkip' => 'required',
+           'draft_lapkp' => 'required',
+        ]);
+
+        $data = Pengajuanskp::create($request->all());
+        if ($request->hasFile('upfor_ajuan')){
+            $request->file('upfor_ajuan')->move('pengajuanskp/', $request->file('upfor_ajuan')->getClientOriginalName());
+            $data->upfor_ajuan = $request->file('upfor_ajuan')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('upper_pembimbing')){
+            $request->file('upper_pembimbing')->move('pengajuanskp/', $request->file('upper_pembimbing')->getClientOriginalName());
+            $data->upper_pembimbing = $request->file('upper_pembimbing')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('surat_selesaikp')){
+            $request->file('surat_selesaikp')->move('pengajuanskp/', $request->file('surat_selesaikp')->getClientOriginalName());
+            $data->surat_selesaikp = $request->file('surat_selesaikp')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('daftarhadirkp')){
+            $request->file('daftarhadirkp')->move('pengajuanskp/', $request->file('daftarhadirkp')->getClientOriginalName());
+            $data->daftarhadirkp = $request->file('daftarhadirkp')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('nilaikp_pembimbing')){
+            $request->file('nilaikp_pembimbing')->move('pengajuanskp/', $request->file('nilaikp_pembimbing')->getClientOriginalName());
+            $data->nilaikp_pembimbing = $request->file('nilaikp_pembimbing')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('sk_pembimbingkp')){
+            $request->file('sk_pembimbingkp')->move('pengajuanskp/', $request->file('sk_pembimbingkp')->getClientOriginalName());
+            $data->sk_pembimbingkp = $request->file('sk_pembimbingkp')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('lembar_pembimbingkp')){
+            $request->file('lembar_pembimbingkp')->move('pengajuanskp/', $request->file('lembar_pembimbingkp')->getClientOriginalName());
+            $data->lembar_pembimbingkp = $request->file('lembar_pembimbingkp')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('transkip')){
+            $request->file('transkip')->move('pengajuanskp/', $request->file('transkip')->getClientOriginalName());
+            $data->transkip = $request->file('transkip')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('draft_lapkp')){
+            $request->file('draft_lapkp')->move('pengajuanskp/', $request->file('draft_lapkp')->getClientOriginalName());
+            $data->draft_lapkp = $request->file('draft_lapkp')->getClientOriginalName();
+            $data->save();            
+        }
+        return redirect()->route('mahasiswa.beranda')->withToastSuccess('Pengajuan sidang kerja praktek berhasil dilakukan, kami akan menghubungi Anda ketika surat selesai diproses!');
+    }
+
+    public function pengajuanpskkp()
+    {
+        return view('mahasiswa.pengajuanpskkp');
+    }
+    public function pengajuanpskkpstore(Request $request){
+        $request->validate([
+           'email' => 'required',
+           'nama' => 'required',
+           'nohp' => 'required',
+           'nim'=> 'required',
+           'jurusan' => 'required',
+           'tgl_pengajuan' => 'required',
+           'nm_pembimbing' => 'required',
+           'bukti_ajuankp' => 'required',
+           'upfor_ajuan' => 'required',
+           'upper_pembimbing' => 'required',
+           'scanombuspbn' => 'required',
+           'up_ombus' => 'required',
+           'up_pbn' => 'required',
+           'transkip' => 'required',
+           'pernyataan' => 'required',
+        ]);
+
+        $data = Pengajuanpskkp::create($request->all());
+        if ($request->hasFile('upfor_ajuan')){
+            $request->file('upfor_ajuan')->move('pengajuanskp/', $request->file('upfor_ajuan')->getClientOriginalName());
+            $data->upfor_ajuan = $request->file('upfor_ajuan')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('upper_pembimbing')){
+            $request->file('upper_pembimbing')->move('pengajuanskp/', $request->file('upper_pembimbing')->getClientOriginalName());
+            $data->upper_pembimbing = $request->file('upper_pembimbing')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('up_ombus')){
+            $request->file('up_ombus')->move('pengajuanskp/', $request->file('up_ombus')->getClientOriginalName());
+            $data->up_ombus = $request->file('up_ombus')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('up_pbn')){
+            $request->file('up_pbn')->move('pengajuanskp/', $request->file('up_pbn')->getClientOriginalName());
+            $data->up_pbn = $request->file('up_pbn')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('transkip')){
+            $request->file('transkip')->move('pengajuanskp/', $request->file('transkip')->getClientOriginalName());
+            $data->transkip = $request->file('transkip')->getClientOriginalName();
+            $data->save(); 
+        }
+        if ($request->hasFile('pernyataan')){
+            $request->file('pernyataan')->move('pengajuanskp/', $request->file('pernyataan')->getClientOriginalName());
+            $data->pernyataan = $request->file('pernyataan')->getClientOriginalName();
+            $data->save();            
+        }
+        return redirect()->route('mahasiswa.beranda')->withToastSuccess('Pengajuan pengusulan sk kp berhasil dilakukan, kami akan menghubungi Anda ketika surat selesai diproses!');
+    }
+
+    public function pengajuanpptakp()
+    {
+        return view('mahasiswa.pengajuanpptakp');
+    }
+    public function pengajuanpptakpstore(Request $request){
+        $request->validate([
+           'email' => 'required',
+           'nama' => 'required',
+           'nohp' => 'required',
+           'nim'=> 'required',
+           'jurusan' => 'required',
+           'permohonan_dok' => 'required',
+           'skpembimbing_akhir' => 'required',
+           'uppernyataan_perspem' => 'required',
+        ]);
+
+        $data = Pengajuanpptakp::create($request->all());
+        if ($request->hasFile('skpembimbing_akhir')){
+            $request->file('skpembimbing_akhir')->move('pengajuanpptakp/', $request->file('skpembimbing_akhir')->getClientOriginalName());
+            $data->skpembimbing_akhir = $request->file('skpembimbing_akhir')->getClientOriginalName();
+            $data->save();            
+        }
+        if ($request->hasFile('uppernyataan_perspem')){
+            $request->file('uppernyataan_perspem')->move('pengajuanpptakp/', $request->file('uppernyataan_perspem')->getClientOriginalName());
+            $data->uppernyataan_perspem = $request->file('uppernyataan_perspem')->getClientOriginalName();
+            $data->save();            
+        }
+        return redirect()->route('mahasiswa.beranda')->withToastSuccess('Pengajuan perpanjangan ta atau kp berhasil dilakukan, kami akan menghubungi Anda ketika surat selesai diproses!');
+    }
+
+    public function pengajuanulta()
+    {
+        return view('mahasiswa.pengajuanulta');
+    }
+    public function pengajuanultastore(Request $request){
+        $request->validate([
+           'email' => 'required',
+           'nim' => 'required',
+           'nama' => 'required',
+           'jurusan' => 'required',
+           'tgl_pengumpulan'=> 'required',
+           'judul_ta' => 'required',
+           'nm_pembimbing1' => 'required',
+           'nm_pembimbing2' => 'required',
+           'tgl_sidangta' => 'required',
+           'file_laporanaplikasi' => 'required',
+        ]);
+
+        $data = Pengajuanulta::create($request->all());
+        if ($request->hasFile('file_laporanaplikasi')){
+            $request->file('file_laporanaplikasi')->move('pengajuanulta/', $request->file('file_laporanaplikasi')->getClientOriginalName());
+            $data->file_laporanaplikasi = $request->file('file_laporanaplikasi')->getClientOriginalName();
+            $data->save();            
+        }
+        return redirect()->route('mahasiswa.beranda')->withToastSuccess('Unggah laporan TA berhasil dilakukan');
+    }
+
+    public function pengajuanulkp()
+    {
+        return view('mahasiswa.pengajuanulkp');
+    }
+    public function pengajuanulkpstore(Request $request){
+        $request->validate([
+           'email' => 'required',
+           'nim' => 'required',
+           'nama' => 'required',
+           'jurusan' => 'required',
+           'tgl_pengumpulan'=> 'required',
+           'judulkp' => 'required',
+           'nm_pembimbing' => 'required',
+           'instansi' => 'required',
+           'tgl_sidangkp' => 'required',
+           'file_laporanaplikasi' => 'required',
+        ]);
+
+        $data = Pengajuanulkp::create($request->all());
+        if ($request->hasFile('file_laporanaplikasi')){
+            $request->file('file_laporanaplikasi')->move('pengajuanulta/', $request->file('file_laporanaplikasi')->getClientOriginalName());
+            $data->file_laporanaplikasi = $request->file('file_laporanaplikasi')->getClientOriginalName();
+            $data->save();            
+        }
+        return redirect()->route('mahasiswa.beranda')->withToastSuccess('Unggah laporan KP berhasil dilakukan');
+    }
+
+    public function pengajuanbpit()
+    {
+        return view('mahasiswa.pengajuanbpit');
+    }
+    public function pengajuanbpitstore(Request $request){
+        $request->validate([
+           'nama' => 'required',
+           'tempat_lahir' => 'required',
+           'tgi_lahir' => 'required',
+           'nim' => 'required',
+           'no_ijazah' => 'required',
+           'jurusan' => 'required',
+           'tgl_lulus'=> 'required',
+           'tgl_terbitijazah' => 'required',
+           'nohp' => 'required',
+           'email' => 'required',
+           'alamat' => 'required',
+           'nm_pengambil' => 'required',
+           'nobuku_pengambilan' => 'required',
+           'foto_pengambilan' => 'required',
+           'kerja' => 'required',
+           'jabatan' => 'required',
+           'nm_perusahaan' => 'required',
+           'alamat_perusahaan' => 'required',
+           'jenis_pernjanjiankerja' => 'required',
+           'tgl_mulai' => 'required',
+           'gaji' => 'required',
+           'email_perusahaan' => 'required',
+           'notelp_perusahaan' => 'required',
+           'pernyataan' => 'required',
+           'keterangan' => 'required',
+           'alasan' => 'required',
+        ]);
+
+        $data = Pengajuanbpit::create($request->all());
+        if ($request->hasFile('foto_pengambilan')){
+            $request->file('foto_pengambilan')->move('pengajuanbpit/', $request->file('foto_pengambilan')->getClientOriginalName());
+            $data->foto_pengambilan = $request->file('foto_pengambilan')->getClientOriginalName();
+            $data->save();            
+        }
+        return redirect()->route('mahasiswa.beranda')->withToastSuccess('Unggah bukti pengambilan ijazah dan transkip nilai berhasil dilakukan');
+    }
+
+    public function legalisasi()
+    {
+        return view('mahasiswa.legalisasi');
+    }
+    public function legalisasistore(Request $request){
+        $request->validate([
+            'email' => 'required',
+            'nama' => 'required',
+            'nim' => 'required',
+            'jurusan' => 'required',
+            'nohp'=> 'required',
+            'jenisdok' => 'required',
+            'file_asli' => 'required',
+            'file_fotocopy' => 'required',
+            'jumlah' => 'required',
+         ]);
+ 
+         $data = Legalisasi::create($request->all());
+         if ($request->hasFile('file_asli')){
+             $request->file('file_asli')->move('legalisasi/', $request->file('file_asli')->getClientOriginalName());
+             $data->file_asli = $request->file('file_asli')->getClientOriginalName();
+             $data->save();            
+         }
+         if ($request->hasFile('file_fotocopy')){
+            $request->file('file_fotocopy')->move('legalisasi/', $request->file('file_fotocopy')->getClientOriginalName());
+            $data->file_fotocopy = $request->file('file_fotocopy')->getClientOriginalName();
+            $data->save();            
+        }
+         return redirect()->route('mahasiswa.beranda')->withToastSuccess('Pengajuan legalisasi berhasil!');
+    }
+
+    public function pengajuanSurattracing($id)
+    {
+
+        $data = TransWF::where('pengajuanspta_id', $id)->get();
+        return response()->json(array('data' => $data), 200);
+    }
+}
